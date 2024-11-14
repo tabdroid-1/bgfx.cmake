@@ -103,6 +103,8 @@ The generated headers will have names in the format of `${RENDERING_API}/${SHADE
 
 Adding these `SHADERS` as source files to a target will run `shaderc` at build time and they will rebuild if either the contents of the `SHADERS` or the `VARYING_DEF` change.
 
+Logs generated from compilation will be located in the `bgfx_tool_logs` directory within the build folder.
+
 #### Examples: Generating shaders as headers
 ```cmake
 bgfx_compile_shaders(

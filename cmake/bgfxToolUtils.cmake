@@ -605,10 +605,11 @@ if(TARGET bgfx::shaderc)
 			get_filename_component(SHADER_FILE_NAME_WE ${SHADER_FILE} NAME_WE)
 			get_filename_component(SHADER_FILE_ABSOLUTE ${SHADER_FILE} ABSOLUTE)
 
+            file(RELATIVE_PATH SHADER_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${SHADER_FILE_ABSOLUTE})
+
 			# Build output targets and their commands
 			set(OUTPUTS "")
 			set(COMMANDS "")
-			set(MKDIR_COMMANDS "")
 			foreach(PROFILE ${PROFILES})
 				_bgfx_get_profile_path_ext(${PROFILE} PROFILE_PATH_EXT)
 				_bgfx_get_profile_ext(${PROFILE} PROFILE_EXT)
@@ -616,6 +617,7 @@ if(TARGET bgfx::shaderc)
 					set(HEADER_PREFIX .h)
 				endif()
 				set(OUTPUT ${ARGS_OUTPUT_DIR}/${PROFILE_PATH_EXT}/${SHADER_FILE_BASENAME}.bin${HEADER_PREFIX})
+                file(MAKE_DIRECTORY ${ARGS_OUTPUT_DIR}/${PROFILE_PATH_EXT})
 				set(PLATFORM_I ${PLATFORM})
 				if(PROFILE STREQUAL "spirv")
 					set(PLATFORM_I LINUX)
@@ -637,24 +639,28 @@ if(TARGET bgfx::shaderc)
 				)
 				list(APPEND OUTPUTS ${OUTPUT})
 				list(APPEND ALL_OUTPUTS ${OUTPUT})
-				list(
-					APPEND
-					MKDIR_COMMANDS
-					COMMAND
-					${CMAKE_COMMAND}
-					-E
-					make_directory
-					${ARGS_OUTPUT_DIR}/${PROFILE_PATH_EXT}
-				)
-				list(APPEND COMMANDS COMMAND bgfx::shaderc ${CLI})
+
+                file(RELATIVE_PATH OUTPUT_RELATIVE ${CMAKE_BINARY_DIR} ${OUTPUT})
+
+                string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_RELATIVE})
+                string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
+
+				list(APPEND COMMANDS COMMAND bgfx::shaderc ${CLI} > bgfx_tool_logs/shader_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log)
 			endforeach()
+
+            file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs)
 
 			add_custom_command(
 				OUTPUT ${OUTPUTS}
-				COMMAND ${MKDIR_COMMANDS} ${COMMANDS}
+				COMMAND ${COMMANDS}
 				MAIN_DEPENDENCY ${SHADER_FILE_ABSOLUTE}
+                COMMENT "Compiling ${SHADER_FILE_RELATIVE}"
 				DEPENDS ${ARGS_VARYING_DEF}
 			)
+
+            add_custom_target(${SHADER_FILE_RELATIVE} ALL
+                DEPENDS ${OUTPUTS}
+            )
 		endforeach()
 
 		if(DEFINED ARGS_OUT_FILES_VAR)
