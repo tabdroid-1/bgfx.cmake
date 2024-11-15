@@ -45,6 +45,8 @@ This defines a bin2c command to generate a specified `OUTPUT_FILE` header with a
 
 Adding these `INPUT_FILE` as source files to a target will run `bin2c` at build time and they will rebuild if either the contents of the `INPUT_FILE` change.
 
+Logs generated from compilation will be located in the `bgfx_tool_logs` directory within the build folder.
+
 #### Examples: Generating an image as a header
 ```cmake
 bgfx_compile_binary_to_header(

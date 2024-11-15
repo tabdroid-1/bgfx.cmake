@@ -55,11 +55,25 @@ if(TARGET bgfx::bin2c)
 			OUTPUT_FILE ${ARG_OUTPUT_FILE}
 			ARRAY_NAME ${ARG_ARRAY_NAME}
 		)
+
+		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs) # create log path if it does not exist
+        file(MAKE_DIRECTORY ${ARGS_OUTPUT_DIR}/${PROFILE_PATH_EXT}) # create output path if it does not exist
+        file(RELATIVE_PATH INPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_INPUT_FILE})
+        file(RELATIVE_PATH OUTPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_OUTPUT_FILE})
+
+        string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_FILE_RELATIVE})
+        string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
+
 		add_custom_command(
 			OUTPUT ${ARG_OUTPUT_FILE} #
-			COMMAND bgfx::bin2c ${CLI} #
+			COMMAND bgfx::bin2c ${CLI} > bgfx_tool_logs/binary_to_header_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log #
+            COMMENT "Compiling ${INPUT_FILE_RELATIVE} as header"
 			MAIN_DEPENDENCY ${ARG_INPUT_FILE} #
 		)
+
+        add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
+             DEPENDS ${ARG_OUTPUT_FILE}
+        )
 	endfunction()
 endif()
 
@@ -642,7 +656,8 @@ if(TARGET bgfx::shaderc)
 
                 file(RELATIVE_PATH OUTPUT_RELATIVE ${CMAKE_BINARY_DIR} ${OUTPUT})
 
-                string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_RELATIVE})
+                string(REPLACE " " "_"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_RELATIVE})
+                string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH})
                 string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
 
 				list(APPEND COMMANDS COMMAND bgfx::shaderc ${CLI} > bgfx_tool_logs/shader_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log)
@@ -650,10 +665,10 @@ if(TARGET bgfx::shaderc)
 
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs)
 
-            # This is to prevent error if compiling as binary and header in same directory
+            # This is to prevent error if compiling as binary and header in same output path 
             set(TARGET_NAME "${SHADER_FILE_RELATIVE}")
             if(ARGS_AS_HEADERS)  
-                set(TARGET_NAME "${SHADER_FILE_RELATIVE} As header")
+                set(TARGET_NAME "${SHADER_FILE_RELATIVE} as header")
             endif()
 
 			add_custom_command(
@@ -664,11 +679,7 @@ if(TARGET bgfx::shaderc)
 				DEPENDS ${ARGS_VARYING_DEF}
 			)
 
-            string(REPLACE " " "_"  TARGET_APPROPRIATE_NAME ${TARGET_NAME}) # Target name can not contain space
-            string(REPLACE "/" "-"  TARGET_APPROPRIATE_NAME ${TARGET_APPROPRIATE_NAME})
-            string(REPLACE "\\" "-"  TARGET_APPROPRIATE_NAME ${TARGET_APPROPRIATE_NAME}) # probably need this for windows
-
-            add_custom_target(${TARGET_APPROPRIATE_NAME} ALL
+            add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
                 DEPENDS ${OUTPUTS}
             )
 		endforeach()
