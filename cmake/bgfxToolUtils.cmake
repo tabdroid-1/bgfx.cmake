@@ -650,15 +650,25 @@ if(TARGET bgfx::shaderc)
 
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs)
 
+            # This is to prevent error if compiling as binary and header in same directory
+            set(TARGET_NAME "${SHADER_FILE_RELATIVE}")
+            if(ARGS_AS_HEADERS)  
+                set(TARGET_NAME "${SHADER_FILE_RELATIVE} As header")
+            endif()
+
 			add_custom_command(
 				OUTPUT ${OUTPUTS}
 				COMMAND ${COMMANDS}
 				MAIN_DEPENDENCY ${SHADER_FILE_ABSOLUTE}
-                COMMENT "Compiling ${SHADER_FILE_RELATIVE}"
+                COMMENT "Compiling ${TARGET_NAME}"
 				DEPENDS ${ARGS_VARYING_DEF}
 			)
 
-            add_custom_target(${SHADER_FILE_RELATIVE} ALL
+            string(REPLACE " " "_"  TARGET_APPROPRIATE_NAME ${TARGET_NAME}) # Target name can not contain space
+            string(REPLACE "/" "-"  TARGET_APPROPRIATE_NAME ${TARGET_APPROPRIATE_NAME})
+            string(REPLACE "\\" "-"  TARGET_APPROPRIATE_NAME ${TARGET_APPROPRIATE_NAME}) # probably need this for windows
+
+            add_custom_target(${TARGET_APPROPRIATE_NAME} ALL
                 DEPENDS ${OUTPUTS}
             )
 		endforeach()
