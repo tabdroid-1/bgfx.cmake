@@ -56,12 +56,14 @@ if(TARGET bgfx::bin2c)
 			ARRAY_NAME ${ARG_ARRAY_NAME}
 		)
 
+        get_filename_component(OUTPUT_DIR "${ARG_OUTPUT_FILE}" DIRECTORY)
+        file(MAKE_DIRECTORY ${OUTPUT_DIR}) # create output path if it does not exist
 		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs) # create log path if it does not exist
-        file(MAKE_DIRECTORY ${ARGS_OUTPUT_DIR}/${PROFILE_PATH_EXT}) # create output path if it does not exist
         file(RELATIVE_PATH INPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_INPUT_FILE})
         file(RELATIVE_PATH OUTPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_OUTPUT_FILE})
 
-        string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_FILE_RELATIVE})
+        string(REPLACE " " "_"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_FILE_RELATIVE})
+        string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH})
         string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
 
 		add_custom_command(
@@ -226,11 +228,26 @@ if(TARGET bgfx::texturec)
 			${ARGN} #
 		)
 		_bgfx_texturec_parse(CLI ${ARGV})
+
+        get_filename_component(OUTPUT_DIR "${ARG_OUTPUT}" DIRECTORY)
+        file(MAKE_DIRECTORY ${OUTPUT_DIR}) # create output path if it does not exist
+		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs) # create log path if it does not exist
+        file(RELATIVE_PATH INPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_FILE})
+        file(RELATIVE_PATH OUTPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_OUTPUT})
+
+        string(REPLACE " " "_"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_FILE_RELATIVE})
+        string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH})
+        string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
+
 		add_custom_command(
 			OUTPUT ${ARG_OUTPUT} #
-			COMMAND bgfx::texturec ${CLI} #
+			COMMAND bgfx::texturec ${CLI} > bgfx_tool_logs/texture_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log#
 			MAIN_DEPENDENCY ${ARG_FILE} #
 		)
+
+        add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
+             DEPENDS ${ARG_OUTPUT}
+        )
 	endfunction()
 endif()
 
