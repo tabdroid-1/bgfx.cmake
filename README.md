@@ -88,6 +88,31 @@ bgfx_compile_texture(
 )
 ```
 
+Logs generated from compilation will be located in the `bgfx_tool_logs` directory within the build folder.
+
+### `bgfx_compile_geometry`
+Add a build rule for a geometry to the generated build system be compiled using geometryc.
+```cmake
+bgfx_compile_geometry(
+     FILE filename
+     OUTPUT filename
+     [SCALE scale]
+     [CCW]
+     [FLIPV]
+     [OBB num steps]
+     [PACKNORMAL 0|1]
+     [PACKUV 0|1]
+     [TANGENT]
+     [BARYCENTRIC]
+     [COMPRESS]
+     [LH_UP_Y|LH_UP_Z|RH_UP_Y|RH_UP_Z]
+)
+
+```
+
+Logs generated from compilation will be located in the `bgfx_tool_logs` directory within the build folder.
+
+
 ### `bgfx_compile_shaders`
 Add a build rule for a `*.sc` shader to the generated build system using shaderc.
 ```cmake

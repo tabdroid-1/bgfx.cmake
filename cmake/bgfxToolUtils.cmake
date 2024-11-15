@@ -69,12 +69,13 @@ if(TARGET bgfx::bin2c)
 		add_custom_command(
 			OUTPUT ${ARG_OUTPUT_FILE} #
 			COMMAND bgfx::bin2c ${CLI} > bgfx_tool_logs/binary_to_header_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log #
-            COMMENT "Compiling ${INPUT_FILE_RELATIVE} as header"
+            COMMENT "Compiling ${INPUT_FILE_RELATIVE} as header" #
 			MAIN_DEPENDENCY ${ARG_INPUT_FILE} #
 		)
 
-        add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
-             DEPENDS ${ARG_OUTPUT_FILE}
+        add_custom_target(
+            ${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL #
+             DEPENDS ${ARG_OUTPUT_FILE} #
         )
 	endfunction()
 endif()
@@ -241,12 +242,14 @@ if(TARGET bgfx::texturec)
 
 		add_custom_command(
 			OUTPUT ${ARG_OUTPUT} #
-			COMMAND bgfx::texturec ${CLI} > bgfx_tool_logs/texture_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log#
+			COMMAND bgfx::texturec ${CLI} > bgfx_tool_logs/texture_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log #
+            COMMENT "Compiling ${INPUT_FILE_RELATIVE}" #
 			MAIN_DEPENDENCY ${ARG_FILE} #
 		)
 
-        add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
-             DEPENDS ${ARG_OUTPUT}
+        add_custom_target(
+             ${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL #
+             DEPENDS ${ARG_OUTPUT} #
         )
 	endfunction()
 endif()
@@ -380,11 +383,28 @@ if(TARGET bgfx::geometryc)
 			${ARGN} #
 		)
 		_bgfx_geometryc_parse(CLI ${ARGV})
+
+        get_filename_component(OUTPUT_DIR "${ARG_OUTPUT}" DIRECTORY)
+        file(MAKE_DIRECTORY ${OUTPUT_DIR}) # create output path if it does not exist
+		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bgfx_tool_logs) # create log path if it does not exist
+        file(RELATIVE_PATH INPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_FILE})
+        file(RELATIVE_PATH OUTPUT_FILE_RELATIVE ${CMAKE_BINARY_DIR} ${ARG_OUTPUT})
+
+        string(REPLACE " " "_"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${OUTPUT_FILE_RELATIVE})
+        string(REPLACE "/" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH})
+        string(REPLACE "\\" "-"  FILE_NAME_APPROPRIATE_OUTPUT_PATH ${FILE_NAME_APPROPRIATE_OUTPUT_PATH}) # probably need this for windows
+
 		add_custom_command(
 			OUTPUT ${ARG_OUTPUT} #
-			COMMAND bgfx::geometryc ${CLI} #
+			COMMAND bgfx::geometryc ${CLI} > bgfx_tool_logs/geometry_compile_output_${FILE_NAME_APPROPRIATE_OUTPUT_PATH}.log #
+            COMMENT "Compiling ${INPUT_FILE_RELATIVE}" #
 			MAIN_DEPENDENCY ${ARG_FILE} #
 		)
+
+        add_custom_target(
+             ${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL #
+             DEPENDS ${ARG_OUTPUT} #
+        )
 	endfunction()
 endif()
 
@@ -689,15 +709,16 @@ if(TARGET bgfx::shaderc)
             endif()
 
 			add_custom_command(
-				OUTPUT ${OUTPUTS}
-				COMMAND ${COMMANDS}
-				MAIN_DEPENDENCY ${SHADER_FILE_ABSOLUTE}
-                COMMENT "Compiling ${TARGET_NAME}"
-				DEPENDS ${ARGS_VARYING_DEF}
+				OUTPUT ${OUTPUTS} #
+				COMMAND ${COMMANDS} #
+				MAIN_DEPENDENCY ${SHADER_FILE_ABSOLUTE} #
+                COMMENT "Compiling ${TARGET_NAME}" #
+				DEPENDS ${ARGS_VARYING_DEF} #
 			)
 
-            add_custom_target(${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL
-                DEPENDS ${OUTPUTS}
+            add_custom_target(
+                ${FILE_NAME_APPROPRIATE_OUTPUT_PATH} ALL #
+                DEPENDS ${OUTPUTS} #
             )
 		endforeach()
 
